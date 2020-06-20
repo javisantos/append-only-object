@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Append Only Object</title>
+
+    <!-- Modern browsers, can import { AppendOnlyObject } api instead  -->
+    <script type="module">
+        console.log("------ ESM")
+        import AppendOnlyObject from '../dist/append-only-object-esm.js'
+        const me = new AppendOnlyObject({ name: 'Javi', test: { a: '1' } })
+
+        me.append({ surname: [{ id: 'surname', value: 'Santos' }] })
+        me.append({ wife: 'Sam' })
+        me.append({ childrens: [{ value: 'Adam' }] })
+        const addSecondChildren = me.append({ childrens: [{ id: 'second', value: 'Matt' }] }, { patch: true })
+        me.append({ errors: { id: 'error', value: 'An error' } })
+        me.delete('error')
+
+        me.name = 'noop'
+        delete me.name
+        me.wife = null
+        me.childrens[0].value2 = 'noop'
+        me.childrens.push({ value: 'noop' })
+
+        console.log(me)
+        // !!!In browser the Append Only Object is a Proxy, use console.log('me ->', me.value) instead
+        // Hacky but always work
+        console.log('me ->', JSON.parse(JSON.stringify(me)))
+        
+        // But magically this works
+        console.log('name ->', me.name)
+        
+        console.log(me.deleted)
+        console.log(addSecondChildren)
+
+    </script>
+
+    <!-- IIFE exports to window.aoo.append and window.aoo.AppendOnlyObject -->
+    <script src="../dist/append-only-object-iife.js"></script>
+    <script>
+        console.log("------ IIFE")
+        const me = new window.AppendOnlyObject({ name: 'javi' })
+        me.append({ surname: [{ id: 'surname', eppe: 'Santos' }] })
+        me.append({ wife: 'Sam' })
+        me.append({ childrens: [{ ae: 'Adam' }] })
+        const addSecondChildren = me.append({ childrens: [{ id: 'second', value: 'Matt' }] }, { patch: true })
+        me.append({ errors: { id: 'error', value: 'An error' } })
+        me.delete('error')
+
+        me.name = 'noop'
+        delete me.name
+        me.wife = null
+        me.childrens[0].value2 = 'noop'
+        me.childrens.push({ value: 'noop' })
+        // me.value ='nop'
+        console.log(me)
+        // !!!In browser the Append Only Object is the AppendOnlyObject Proxy, use console.log('me ->', me.value) instead
+        // Hacky but always work
+        console.log('me ->', JSON.parse(JSON.stringify(me)))
+
+        // But magically this works
+        console.log('name ->', me.name)
+
+        console.log(me.deleted)
+        console.log(addSecondChildren)
+        console.log("VALUE", me.value);
+    </script>
+
+</head>
+
+<body>
+    F12
+</body>
+
+</html>
