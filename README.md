@@ -75,8 +75,10 @@ output:
 }
 Set { 'error' }
 {
-  id: 'uoNymdl6Q3W6vO-xL-Kwkw-4',
+  id: 'GnWhgp9IShi9Hv6kt-GeZw-4',
   change: { childrens: [ [Object] ] },
+  by: '1a75a182-9f48-4a18-bd1e-fea4b7f19e67',
+  when: '2020-06-25T12:40:52.430Z',
   patch: [ { op: 'add', path: '/childrens/1', value: [Object] } ]
 }
 ```
