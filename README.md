@@ -16,7 +16,7 @@ I wanted to learn about javascript [Proxies](https://developer.mozilla.org/en-US
 ## Features
 
 
-- The target object is mutated by default, can change this behaviour setting `opts.inmutable` to true
+- The target object is not mutated
 - The initial values can be set without `id` to be undeletables
 - An `id` (hyperid) is added to all the objects appended if no `id` is included
 - Can `delete` any object by his `id`
@@ -99,11 +99,11 @@ This class creates an append only object, where you can only `append` and `"dele
 {
   strict: true, // set to false if you want to be able to `modify` (without overwrite or delete) an object or array (ex. push to an array or add a prop to an existent object).
   unique: true, // set to false if you want to allow objects with the same id.
-  deepequal: false // set to true to allow deep equal objects inside arrays. (Make sense with unique=false)
+  deepequal: false, // set to true to allow deep equal objects inside arrays. (Make sense with unique=false)
   encode: false, // to encode the `change` value. Other options json|base64url|base64|hex|binary
   by: true, // by default return the uuid used to generate the ids. Can send an `object` or `array`.
   when: true, // add an (ISO 8601) `when` value.
-  patch: false // set to true if you want a (RFC6902) `patch` object tu be returned.
+  patch: false, // set to true if you want a (RFC6902) `patch` object tu be returned.
   previous: false, // set to true to receive the `previous` object before the append.
   deletable: true, // set to false if you don't want to autogenerate an id if doesn't exist. Remember, only object with id are deletable.
 }
