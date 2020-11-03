@@ -17,7 +17,6 @@ function isObject (o) {
 const defaults = {
   strict: true, // or false
   unique: true, // or false
-  deepequal: false, // or false
   by: true, // or false, object, array
   when: true, // or false
   encode: false, // or base64url, base64, hex...
@@ -99,7 +98,7 @@ export default class AppendOnlyObject {
 
       if (isObject(left)) this.setId(left)
       let result = merge(left, right, { setId: this.setId.bind(this) })
-      if ((!this.opts.unique && !this.opts.deepequal) && Array.isArray(result)) result = uniq(result, this.opts.unique)
+      if (this.opts.unique && Array.isArray(result)) result = uniq(result, this.opts.unique)
       return result
     }
   }

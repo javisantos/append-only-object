@@ -18,7 +18,7 @@ I wanted to learn about javascript [Proxies](https://developer.mozilla.org/en-US
 
 - The target object is not mutated
 - The initial values can be set without `id` to be undeletables
-- An `id` (hyperid) is added to all the objects appended if no `id` is included
+- An `id` is added to all the objects appended if no `id` is included
 - Can `delete` any object by his `id`
 - Can `append` atomatically a timestamp setting `opts.when` to true
 - Can't `append` deep equal object to an array, 
@@ -99,16 +99,14 @@ This class creates an append only object, where you can only `append` and `"dele
 {
   strict: true, // set to false if you want to be able to `modify` (without overwrite or delete) an object or array (ex. push to an array or add a prop to an existent object).
   unique: true, // set to false if you want to allow objects with the same id.
-  deepequal: false, // set to true to allow deep equal objects inside arrays. (Make sense with unique=false)
   encode: false, // to encode the `change` value. Other options json|base64url|base64|hex|binary
   by: true, // by default return the uuid used to generate the ids. Can send an `object` or `array`.
   when: true, // add an (ISO 8601) `when` value.
   patch: false, // set to true if you want a (RFC6902) `patch` object tu be returned.
   previous: false, // set to true to receive the `previous` object before the append.
-  deletable: true, // set to false if you don't want to autogenerate an id if doesn't exist. Remember, only object with id are deletable.
 }
 ```
-| All the `options` can be set `globally` in the creation of the object or with more `priority` (except `strict`, `unique` and `deepequal`) in the `append` or `deleted` methods.
+| All the `options` can be set `globally` in the creation of the object or with more `priority` (except `strict` and `unique`) in the `append` or `delete` methods.
 
 ### `append(delta, [options])`
 
@@ -127,30 +125,6 @@ Removes all matching object with this id. Adds the id to the AppendOnlyObject`.d
 npm install
 npm run test
 ```
-
-## Dependencies
-
-- [fast-json-patch](https://ghub.io/fast-json-patch): Used to return an optional `patch` object
-- [hyperid](https://ghub.io/hyperid): Used to generate an `id` for each object
-
-## Dev Dependencies
-
-- [@rollup/plugin-commonjs](https://ghub.io/@rollup/plugin-commonjs): Convert CommonJS modules to ES2015
-- [del-cli](https://ghub.io/del-cli): Delete files and directories - Cross-platform
-- [eslint](https://ghub.io/eslint): An AST-based pattern checker for JavaScript.
-- [eslint-config-standard](https://ghub.io/eslint-config-standard): JavaScript Standard Style - ESLint Shareable Config
-- [eslint-plugin-import](https://ghub.io/eslint-plugin-import): Import with sanity.
-- [eslint-plugin-node](https://ghub.io/eslint-plugin-node): Additional ESLint&#39;s rules for Node.js
-- [eslint-plugin-promise](https://ghub.io/eslint-plugin-promise): Enforce best practices for JavaScript promises
-- [eslint-plugin-standard](https://ghub.io/eslint-plugin-standard): ESlint Plugin for the Standard Linter
-- [husky](https://ghub.io/husky): Prevents bad commit or push (git hooks, pre-commit/precommit, pre-push/prepush, post-merge/postmerge and all that stuff...)
-- [nodemon](https://ghub.io/nodemon): Simple monitor script for use during development of a node.js app.
-- [rollup](https://ghub.io/rollup): Next-generation ES module bundler
-- [rollup-plugin-node-polyfills](https://ghub.io/rollup-plugin-node-polyfills): rollup-plugin-node-polyfills ===
-- [rollup-plugin-node-resolve](https://ghub.io/rollup-plugin-node-resolve): Bundle third-party dependencies in node_modules
-- [rollup-plugin-terser](https://ghub.io/rollup-plugin-terser): Rollup plugin to minify generated es bundle
-- [tap-spec](https://ghub.io/tap-spec): Formatted TAP output like Mocha&#39;s spec reporter
-- [tape](https://ghub.io/tape): tap-producing test harness for node and browsers
 
 ## License
 
