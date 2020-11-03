@@ -1,9 +1,10 @@
-import hyperid from 'hyperid'
-
+import { customAlphabet } from 'nanoid'
 import * as jsonpatch from 'fast-json-patch'
 import util from 'util'
+import merge from './merge'
+import parse from './parse'
 
-const instance = hyperid({ urlSafe: true })
+const instance = customAlphabet('123456789abcdefghijkmnopqrstuvwxyz', 16)
 
 function uniq (array, byId = true) {
   return byId ? array
@@ -24,14 +25,13 @@ const defaults = {
   when: true, // or false
   encode: false, // or base64url, base64, hex...
   patch: false, // or true
-  previous: false, // or true
-  deletable: true // or false
+  previous: false // or true
 }
 
 export default class AppendOnlyObject {
   constructor (obj, opts) {
     this.deleted = new Set(obj.deleted || [])
-    this.ids = new Set()
+    this.ids = new Map()
     delete obj.deleted
     this.opts = { ...defaults, ...opts }
     this[Symbol.for('value')] = new Proxy(obj, this.objHanlder)
@@ -39,9 +39,13 @@ export default class AppendOnlyObject {
     return new Proxy(this, this.handler)
   }
 
+  get value () {
+    return parse(this[Symbol.for('value')])
+  }
+
   setId (o) {
     if (!o.id) { o.id = instance() }
-    this.ids.add(o.id)
+    this.ids.set(o.id, o)
   }
 
   _result (delta, prev, opts) {
@@ -52,7 +56,7 @@ export default class AppendOnlyObject {
     const previous = opts.previous
 
     const result = {
-      id: instance(),
+      // id: instance(),
       change: delta
     }
     if (encode) {
@@ -61,12 +65,12 @@ export default class AppendOnlyObject {
       } else if (opts.encode === 'base64url') {
         console.log('base64url not implemented')
       } else {
-        result.change = Buffer.from(JSON.stringify(delta)).toString(encode)
+        result.change = delta
       }
     }
 
     if (by === true) {
-      result.by = instance.uuid
+      result.by = undefined
     } else if (by) {
       result.by = by
     }
@@ -77,11 +81,43 @@ export default class AppendOnlyObject {
     return result
   }
 
+  _merge () {
+    return (left, right) => {
+      if (Array.isArray(left)) {
+        left = left.map((item) => {
+          if (isObject(item)) {
+            if (!item.id) item.id = instance()
+          }
+          return item
+        })
+      }
+      if (Array.isArray(right)) {
+        right = right.map((item) => {
+          if (isObject(item)) {
+            if (!item.id) item.id = instance()
+          }
+          return item
+        })
+      }
+
+      if (isObject(left)) this.setId(left)
+      let result = merge(left, right, { setId: this.setId.bind(this) })
+      if ((!this.opts.unique && !this.opts.deepequal) && Array.isArray(result)) result = uniq(result, this.opts.unique)
+      return result
+    }
+  }
+
   append (delta, opts = {}) {
     const prev = { ...this[Symbol.for('value')] }
-    // this.ids = new Set([])
-    const target = this._append(delta, null, { ...this.opts, ...opts }.deletable)
-    this[Symbol.for('value')] = new Proxy(Object.assign({}, target), this.objHanlder)
+    if (delta.deleted) this._delete(delta.deleted)
+    delete delta.deleted
+    const merged = merge(prev, delta, {
+      customMerge: this._merge.bind(this),
+      root: true,
+      setId: this.setId
+    })
+
+    this[Symbol.for('value')] = new Proxy(merged, this.objHanlder)
     return this._result(delta, prev, { ...this.opts, ...opts })
   }
 
@@ -92,49 +128,6 @@ export default class AppendOnlyObject {
     this[Symbol.for('value')] = new Proxy(Object.assign({}, this[Symbol.for('value')]), this.objHanlder)
 
     return this._result({ deleted }, prev, { ...this.opts, ...opts })
-  }
-
-  _append (delta, target = null, deletable) {
-    if (target === null) {
-      if (delta.deleted) this._delete(delta.deleted)
-      target = JSON.parse(JSON.stringify(this[Symbol.for('value')]))
-    }
-
-    for (const key in delta) {
-      if (isObject(delta[key])) {
-        if (!target[key] && !this.deleted.has(delta[key].id)) {
-          if (deletable) this.setId(delta[key])
-          target[key] = delta[key]
-        }
-        this._append(delta[key], target[key], deletable)
-      } else if (Array.isArray(delta[key])) {
-        if (Array.isArray(target[key])) {
-          delta[key].forEach((item) => {
-            if (!isObject(item) || (!this.ids.has(item.id) && this.opts.unique)) {
-              if (Array.isArray(item)) throw new TypeError('can\'t add arrays to arrays')
-              target[key].push(item)
-            } else if (!this.opts.unique) {
-              target[key].push(item)
-            }
-            if (isObject(item) && deletable) this.setId(item)
-          })
-        }
-        if (!target[key] && Array.isArray(delta[key])) {
-          target[key] = delta[key].filter((item) => {
-            if (Array.isArray(item)) throw new TypeError('can\'t add arrays to arrays')
-            if (isObject(item) && this.ids.has(item.id) && this.opts.unique) return false
-            if (isObject(item) && deletable) this.setId(item)
-            return true
-          })
-        }
-
-        if (!this.opts.unique && !this.opts.deepequal) target[key] = uniq(target[key], this.opts.unique)
-      } else if (!target[key] && delta[key]) {
-        target[key] = delta[key]
-      }
-    }
-
-    return target
   }
 
   _delete (id) {
@@ -163,42 +156,44 @@ export default class AppendOnlyObject {
         if (name === Symbol.for('value')) {
           return this[Symbol.for('value')]
         }
-        if (name === 'toJSON') return () => this[Symbol.for('value')]
-        if (name in this[Symbol.for('value')] && name !== 'deleted' && name !== 'value') {
+        if (name === 'toJSON') return () => parse(this[Symbol.for('value')])
+        if (name in this[Symbol.for('value')] && name !== 'deleted') {
           return this[Symbol.for('value')][name]
         } else {
           return Reflect.get(target, name, receiver)
         }
       },
-      set: (target, prop, value, receiver) => {
-        return Reflect.set(target, prop, value, receiver)
-      },
-      deleteProperty: (target, prop) => {
+      deleteProperty: () => {
         // Never!
         return true
+      },
+      set: (target, prop, value, receiver) => {
+        if (prop === Symbol.for('value')) {
+          return Reflect.set(target, prop, value, receiver)
+        }
+        if ((!this[Symbol.for('value')][prop] && !this.opts.strict)) {
+          this[Symbol.for('value')][prop] = value
+          return Reflect.set(this[Symbol.for('value')], prop, value, receiver)
+        }
+
+        return true
       }
+
     }
   }
 
   get objHanlder () {
     return {
       get: (target, name, receiver) => {
+        // console.log('GETT', name)
         if (name === 'isProxy') return true
         if (Array.isArray(target[name])) {
-          target[name] = target[name].filter((item) => !this.deleted.has(item.id))
+          target[name] = new Proxy(target[name].filter((item) => !this.deleted.has(item.id)), this.objHanlder)
         }
-
-        return typeof target[name] === 'object' && target[name] !== null
-          ? Array.isArray(target[name])
-            ? new Proxy(target[name], this.objHanlder)
-            : !this.deleted.has(target[name].id) ? new Proxy(target[name], this.objHanlder) : null
-          : Reflect.get(target, name, receiver)
-      },
-      set: (target, prop, value, receiver) => {
-        if ((!target[prop] && !this.opts.strict) || Array.isArray(target[prop])) {
-          return Reflect.set(target, prop, value, receiver)
+        if (isObject(target[name]) && !target[name].isProxy) {
+          target[name] = new Proxy(target[name], this.objHanlder)
         }
-        return true
+        return Reflect.get(target, name, receiver)
       },
       ownKeys: (target) => {
         const keys = Object.keys(target)
@@ -213,10 +208,14 @@ export default class AppendOnlyObject {
         })
         return oKeys
       },
-      deleteProperty: (target, prop) => {
+      deleteProperty: () => {
         // Never!
         return true
+      },
+      apply: () => {
+        console.log('APPLY')
       }
+
     }
   }
 }
