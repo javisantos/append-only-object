@@ -1,11 +1,13 @@
 const AppendOnlyObject = require('.')
 
-const me = new AppendOnlyObject({ name: 'Javi', test: { a: '1' } })
+const me = new AppendOnlyObject({ name: 'javi' })
 
 me.append({ surname: [{ id: 'surname', value: 'Santos' }] })
 me.append({ wife: 'Sam' })
 me.append({ childrens: [{ value: 'Adam' }] })
-const addSecondChildren = me.append({ childrens: [{ id: 'second', value: 'Matt' }] }, { patch: true })
+console.log('ME', me)
+const addSecondChildren = me.append({ childrens: [{ id: 'second', value: 'Matt' }] }, { patch: true, when: true, by: '1a75a182-9f48-4a18-bd1e-fea4b7f19e67' })
+me.append({ childrens: [{ id: 'second', value: 'Matt' }] }, { patch: true })
 me.append({ errors: { id: 'error', value: 'An error' } })
 me.delete('error')
 

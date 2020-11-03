@@ -47,7 +47,7 @@ const me = new AppendOnlyObject({ name: 'javi' })
 me.append({ surname: [{ id: 'surname', value: 'Santos' }] })
 me.append({ wife: 'Sam' })
 me.append({ childrens: [{ value: 'Adam' }] })
-const addSecondChildren = me.append({ childrens: [{ id: 'second', value: 'Matt' }] }, { patch: true })
+const addSecondChildren = me.append({ childrens: [{ id: 'second', value: 'Matt' }] }, { patch: true, when: true, by: '1a75a182-9f48-4a18-bd1e-fea4b7f19e67' })
 me.append({ errors: { id: 'error', value: 'An error' } })
 me.delete('error')
 
@@ -75,7 +75,6 @@ output:
 }
 Set { 'error' }
 {
-  id: 'GnWhgp9IShi9Hv6kt-GeZw-4',
   change: { childrens: [ [Object] ] },
   by: '1a75a182-9f48-4a18-bd1e-fea4b7f19e67',
   when: '2020-06-25T12:40:52.430Z',
@@ -100,8 +99,8 @@ This class creates an append only object, where you can only `append` and `"dele
   strict: true, // set to false if you want to be able to `modify` (without overwrite or delete) an object or array (ex. push to an array or add a prop to an existent object).
   unique: true, // set to false if you want to allow objects with the same id.
   encode: false, // to encode the `change` value. Other options json|base64url|base64|hex|binary
-  by: true, // by default return the uuid used to generate the ids. Can send an `object` or `array`.
-  when: true, // add an (ISO 8601) `when` value.
+  by: false, // Can send an `string`, `object` or `array`.
+  when: false, // add an (ISO 8601) `when` value.
   patch: false, // set to true if you want a (RFC6902) `patch` object tu be returned.
   previous: false, // set to true to receive the `previous` object before the append.
 }

@@ -24,9 +24,12 @@ function emptyTarget (val) {
 }
 
 function cloneUnlessOtherwiseSpecified (value, options) {
-  return (options.clone !== false && options.isMergeableObject(value))
-    ? merge(emptyTarget(value), value, options)
-    : value
+  if (options.clone !== true && options.isMergeableObject(value)) {
+    options.setId(value)
+    return merge(emptyTarget(value), value, options)
+  } else {
+    return value
+  }
 }
 
 function defaultArrayMerge (target, source, options) {

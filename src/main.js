@@ -17,9 +17,9 @@ function isObject (o) {
 const defaults = {
   strict: true, // or false
   unique: true, // or false
-  by: true, // or false, object, array
-  when: true, // or false
-  encode: false, // or base64url, base64, hex...
+  by: false, // or true, object, array
+  when: false, // or true
+  encode: 'base64url', // or false, base64, hex...
   patch: false, // or true
   previous: false // or true
 }
@@ -59,15 +59,18 @@ export default class AppendOnlyObject {
       if (encode === 'json') {
         result.change = JSON.stringify(delta)
       } else if (opts.encode === 'base64url') {
-        console.log('base64url not implemented')
+        const buffer = Buffer.from(JSON.stringify(delta))
+        result.change = buffer
+          .toString('base64')
+          .replace(/\+/g, '-')
+          .replace(/\//g, '_')
+          .replace(/=+/, '')
       } else {
-        result.change = delta
+        result.change = Buffer.from(JSON.stringify(delta)).toString(encode)
       }
     }
 
-    if (by === true) {
-      result.by = undefined
-    } else if (by) {
+    if (by && by !== true) {
       result.by = by
     }
 
@@ -79,25 +82,10 @@ export default class AppendOnlyObject {
 
   _merge () {
     return (left, right) => {
-      if (Array.isArray(left)) {
-        left = left.map((item) => {
-          if (isObject(item)) {
-            if (!item.id) item.id = instance()
-          }
-          return item
-        })
-      }
-      if (Array.isArray(right)) {
-        right = right.map((item) => {
-          if (isObject(item)) {
-            if (!item.id) item.id = instance()
-          }
-          return item
-        })
-      }
-      if (isObject(right)) this.setId(right)
       let result = merge(left, right, { setId: this.setId.bind(this) })
-      if (this.opts.unique && Array.isArray(result)) result = uniq(result, this.opts.unique)
+      if (this.opts.unique && Array.isArray(result)) {
+        result = uniq(result, this.opts.unique)
+      }
       return result
     }
   }
@@ -109,7 +97,7 @@ export default class AppendOnlyObject {
     const merged = merge(prev, delta, {
       customMerge: this._merge.bind(this),
       root: true,
-      setId: this.setId
+      setId: this.setId.bind(this)
     })
 
     this[Symbol.for('value')] = new Proxy(merged, this.objHanlder)
@@ -164,6 +152,9 @@ export default class AppendOnlyObject {
       },
       set: (target, prop, value, receiver) => {
         if (prop === Symbol.for('value')) {
+          return Reflect.set(target, prop, value, receiver)
+        }
+        if (prop === 'id') {
           return Reflect.set(target, prop, value, receiver)
         }
         if ((!this[Symbol.for('value')][prop] && !this.opts.strict)) {
