@@ -38,7 +38,7 @@
 
     </script>
 
-    <!-- IIFE exports to window.aoo.append and window.aoo.AppendOnlyObject -->
+    <!-- IIFE exports to window.AppendOnlyObject -->
     <script src="../dist/append-only-object-iife.js"></script>
     <script>
         console.log("------ IIFE")
@@ -57,7 +57,7 @@
         me.childrens.push({ value: 'noop' })
         // me.value ='nop'
         console.log(me)
-        // !!!In browser the Append Only Object is the AppendOnlyObject Proxy, use console.log('me ->', me.value) instead
+        // !!!In browser the Append Only Object is the AppendOnlyObject Proxy, use console.log('me ->', me.toJSON()) instead
         // Hacky but always work
         console.log('me ->', JSON.parse(JSON.stringify(me)))
 
@@ -66,7 +66,7 @@
 
         console.log(me.deleted)
         console.log(addSecondChildren)
-        console.log("VALUE", me.value);
+        console.log("VALUE!", me.toJSON());
     </script>
 
 </head>

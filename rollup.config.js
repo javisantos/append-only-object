@@ -9,20 +9,20 @@ const plugins = () => {
       nodePolyfills(),
       commonjs(),
       resolve({
-        preferBuiltins: true,
         browser: true
       })
+
     ]
   } else {
     return [
       nodePolyfills(),
       commonjs(),
       resolve({
-        preferBuiltins: true,
         browser: true
       }),
       terser({
-        compress: { ecma: 2019 }
+        compress: { ecma: 2019 },
+        output: { comments: false }
       })
     ]
   }
@@ -43,10 +43,6 @@ export default [{
   }, {
     file: 'dist/append-only-object-esm.js',
     format: 'esm',
-    sourcemap: !process.env.PRODUCTION
-  }, {
-    file: 'dist/append-only-object-amd.js',
-    format: 'amd',
     sourcemap: !process.env.PRODUCTION
   }],
   plugins: plugins()
