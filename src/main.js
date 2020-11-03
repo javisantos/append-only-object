@@ -95,8 +95,7 @@ export default class AppendOnlyObject {
           return item
         })
       }
-
-      if (isObject(left)) this.setId(left)
+      if (isObject(right)) this.setId(right)
       let result = merge(left, right, { setId: this.setId.bind(this) })
       if (this.opts.unique && Array.isArray(result)) result = uniq(result, this.opts.unique)
       return result
@@ -181,15 +180,22 @@ export default class AppendOnlyObject {
   get objHanlder () {
     return {
       get: (target, name, receiver) => {
-        // console.log('GETT', name)
         if (name === 'isProxy') return true
         if (Array.isArray(target[name])) {
-          target[name] = new Proxy(target[name].filter((item) => !this.deleted.has(item.id)), this.objHanlder)
+          return new Proxy(target[name].filter((item) => !this.deleted.has(item.id)), this.objHanlder)
         }
         if (isObject(target[name]) && !target[name].isProxy) {
-          target[name] = new Proxy(target[name], this.objHanlder)
+          return new Proxy(target[name], this.objHanlder)
         }
         return Reflect.get(target, name, receiver)
+      },
+      set: (target, prop, value, receiver) => {
+        if ((!target[prop] && !this.opts.strict)) {
+          target[prop] = value
+          return true
+        }
+
+        return true
       },
       ownKeys: (target) => {
         const keys = Object.keys(target)
@@ -206,9 +212,6 @@ export default class AppendOnlyObject {
       deleteProperty: () => {
         // Never!
         return true
-      },
-      apply: () => {
-        console.log('APPLY')
       }
     }
   }

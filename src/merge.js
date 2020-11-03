@@ -88,7 +88,7 @@ function mergeObject (target, source, options) {
       destination[key] = cloneUnlessOtherwiseSpecified(source[key], options)
     }
   })
-
+  if (!options.root) options.setId(destination)
   return destination
 }
 

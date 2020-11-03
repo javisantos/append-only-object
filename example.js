@@ -19,6 +19,6 @@ console.log(me)
 console.log(me.deleted)
 console.log(addSecondChildren)
 
-// !!!In browser the Append Only Object is a Proxy, use console.log('me ->', me.value) instead
+// !!!In browser the Append Only Object is a Proxy, use console.log('me ->', me.toJSON()) instead
 // Hacky but always work
 // console.log('me ->', JSON.parse(JSON.stringify(me)))
