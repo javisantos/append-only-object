@@ -9,8 +9,7 @@
     "lint": "eslint ./src/main.js ./test/test.js",
     "lint:fix": "eslint ./src/main.js ./test/test.js --fix",
     "test": "tape test/test.js",
-    "dev": "nodemon --exec 'del dist && rollup -c && npm run test' --watch ./src --watch ./test",
-    "prepublish": "npm run build"
+    "dev": "nodemon --exec 'del dist && rollup -c && npm run test' --watch ./src --watch ./test"
   },
   "keywords": [
     "append",
