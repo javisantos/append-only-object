@@ -7,10 +7,7 @@ import parse from './parse'
 const instance = customAlphabet('123456789abcdefghijkmnopqrstuvwxyz', 16)
 
 function uniq (array, byId = true) {
-  return byId ? array
-    .filter((v, i, a) => a.findIndex(t => (t.id === v.id)) === i)
-    : [...new Set(array.map(s => JSON.stringify(s)))]
-      .map(s => JSON.parse(s))
+  return byId ? array.filter((v, i, a) => a.findIndex(t => (t.id === v.id)) === i) : [...new Set(array.map(s => JSON.stringify(s)))].map(s => JSON.parse(s))
 }
 
 function isObject (o) {
@@ -199,9 +196,8 @@ export default class AppendOnlyObject {
         const keys = Object.keys(target)
         const oKeys = []
         keys.forEach((key) => {
-          if (typeof target[key] === 'object' &&
-            target[key] !== null &&
-            this.deleted.has(target[key].id)) {
+          if (typeof target[key] === 'object' && target[key] !== null && this.deleted.has(target[key].id)) {
+            // No key
           } else {
             oKeys.push(key)
           }
@@ -215,7 +211,6 @@ export default class AppendOnlyObject {
       apply: () => {
         console.log('APPLY')
       }
-
     }
   }
 }
