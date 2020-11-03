@@ -44,12 +44,7 @@
     "fast-json-patch": "^3.0.0-1",
     "hyperid": "^2.0.5"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "npm run build && npm run lint",
-      "pre-push": "npm run build"
-    }
-  },
+
   "standard": {
     "ignore": [
       "dist/*"
